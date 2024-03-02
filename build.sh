@@ -32,7 +32,11 @@ function build() {
             fi
         fi
 
-        git pull
+        echo "> updating ${branch}"
+        git reset --hard origin/${branch}
+        git update-ref -d refs/remotes/origin/${branch}
+        git pull --ff-only
+
         rm -f "${worktree}/_success"
         eval "${CMD}" > "${worktree}/stdout.log" 2> "${worktree}/stderr.log"
         touch "${worktree}/_success"
@@ -55,6 +59,7 @@ fi
 pushd "${REPO}" > /dev/null 2>&1
     echo "> detaching"
     git checkout --detach
+    git fetch
 
     tasks=()
     for branch in $(git for-each-ref refs/remotes/origin --format="%(refname:lstrip=3)"); do
@@ -89,20 +94,20 @@ pushd "${REPO}" > /dev/null 2>&1
     for task in "${tasks[@]}"; do
         IFS=' ' read -r pid branch <<< "${task}"
         worktree="${BUILD}/${branch}"
-        if wait ${pid}; then
+        status=0; wait ${pid} || status=$?
+        if [ $status -eq 0 ]; then
             echo "✓ ${branch} (${pid}) build complete"
             cp -R "${worktree}/target/doc" "${OUTPUT}/${branch}"
         else
             echo ""
-            echo "x ${branch} failed (${worktree})"
+            echo "x ${branch} failed (pid=$pid, exit=$status)"
             echo "======================== STDOUT ============================"
-            cat "${worktree}/stdout.log"
+            cat "${worktree}/stdout.log" 2>/dev/null || true
             echo "======================== STDERR ============================"
-            cat "${worktree}/stderr.log"
+            cat "${worktree}/stderr.log" 2>/dev/null || true
             echo "============================================================"
 
             if [[ " ${MUST_PASS[*]} " =~ " ${branch} " ]]; then
-                echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                 echo "FAILURE: ${branch} is in must pass list [${MUST_PASS[@]}]"
                 echo "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                 exit 1
