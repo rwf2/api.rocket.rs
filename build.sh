@@ -26,15 +26,16 @@ function build() {
 
         # if there are no changes and we've already built, do nothing
         if [ $(git rev-parse HEAD) == $(git rev-parse @{u}) ]; then
-            if [ -d "${worktree}/target/doc" ]; then
+            if [ -f "${worktree}/_success" ] && [ -d "${worktree}/target/doc" ]; then
                 echo "✓ ${branch} build is up to date"
                 return 0
             fi
-        else
-            git pull
         fi
 
+        git pull
+        rm -f "${worktree}/_success"
         eval "${CMD}" > "${worktree}/stdout.log" 2> "${worktree}/stderr.log"
+        touch "${worktree}/_success"
     popd > /dev/null 2>&1
 }
 
