@@ -7,15 +7,17 @@ jobs:
     permissions:
       contents: read
       deployments: write
-    name: Deploy api.rocket.rs
+    name: Deploy
     steps:
+      - name: Set Timestamp
+        run: echo "TIMESTAMP=$(date +'%Y-%U')" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v4
       - name: Cache Build
         id: cache-build
         uses: actions/cache@v4
         with:
-          key: build-cache
+          key: build-cache-${{ env.TIMESTAMP }}
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
@@ -27,11 +29,11 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
       - name: Build Docs
         run: ./build.sh
-      # - name: Publish
-      #   uses: cloudflare/pages-action@1
-      #   with:
-      #     apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      #     accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      #     projectName: api-rocket-rs
-      #     directory: _output
-      #     gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish
+        uses: cloudflare/pages-action@1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: api-rocket-rs
+          directory: _output
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
