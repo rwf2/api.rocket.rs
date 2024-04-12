@@ -59,7 +59,7 @@ fi
 pushd "${REPO}" > /dev/null 2>&1
     echo "> detaching"
     git checkout --detach
-    git fetch
+    git fetch -p
 
     tasks=()
     for branch in $(git for-each-ref refs/remotes/origin --format="%(refname:lstrip=3)"); do
