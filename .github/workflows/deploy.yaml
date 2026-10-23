@@ -10,12 +10,12 @@ jobs:
     name: Deploy
     steps:
       - name: Set Timestamp
-        run: echo "TIMESTAMP=$(date +'%Y-%U')" >> $GITHUB_ENV
+        run: echo "TIMESTAMP=$(date +'%Y-%U')" >> "$GITHUB_ENV"
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Cache Build
         id: cache-build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           key: build-cache-${{ env.TIMESTAMP }}
           path: |
@@ -30,10 +30,9 @@ jobs:
       - name: Build Docs
         run: ./build.sh
       - name: Publish
-        uses: cloudflare/pages-action@1
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: api-rocket-rs
-          directory: _output
+          command: pages deploy _output --project-name=api-rocket-rs
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
