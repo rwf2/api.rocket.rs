@@ -15,7 +15,7 @@ OUTPUT="${SCRIPT_DIR}/_output"
 
 GIT_URL=https://github.com/rwf2/Rocket.git
 EXCLUDE=("HEAD" "v0.1" "v0.2" "v0.3" "v0.5-rc")
-MUST_PASS=("v0.5")
+MUST_PASS=("master" "v0.5")
 CMD="./scripts/mk-docs.sh"
 
 function build() {
